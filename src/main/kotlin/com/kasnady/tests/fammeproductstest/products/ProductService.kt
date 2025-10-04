@@ -1,5 +1,6 @@
 package com.kasnady.tests.fammeproductstest.products
 
+import com.kasnady.tests.fammeproductstest.products.models.Product
 import com.kasnady.tests.fammeproductstest.utils.network.ApiService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -8,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional
 
 interface ProductService {
     fun fetchAndStoreData()
+
+    fun getProducts(): List<Product>
 }
 
 @Service
@@ -45,5 +48,9 @@ class ProductServiceImpl(
         }
 
         logger.info("Finish fetching and store products to DB")
+    }
+
+    override fun getProducts(): List<Product> {
+        return productRepository.getProducts()
     }
 }
