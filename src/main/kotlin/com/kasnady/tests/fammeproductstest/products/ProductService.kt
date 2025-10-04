@@ -11,6 +11,8 @@ interface ProductService {
     fun fetchAndStoreData()
 
     fun getProducts(): List<Product>
+
+    fun saveProductAndVariants(product: ProductRequest): Long
 }
 
 @Service
@@ -52,5 +54,14 @@ class ProductServiceImpl(
 
     override fun getProducts(): List<Product> {
         return productRepository.getProducts()
+    }
+
+    override fun saveProductAndVariants(product: ProductRequest): Long {
+        val productId = productRepository.saveProduct(product)
+
+        productRepository.saveVariants(productId, product.variants)
+        logger.info("New product saved with ID: $productId title: ${product.title}")
+
+        return productId
     }
 }

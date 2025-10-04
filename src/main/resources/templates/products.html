@@ -1,14 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(~{::section})}">
-<section>
-    <h2>Products</h2>
-    <button class="btn btn-primary"
+<section class="wa-stack">
+    <script>
+        let variantIndex = 1; // start after the first row
+
+        function addVariant() {
+            const template = document.getElementById("variant-template").innerHTML;
+            const rendered = template.replace(/__index__/g, variantIndex++);
+            document.getElementById("variantsContainer").insertAdjacentHTML("beforeend", rendered);
+        }
+    </script>
+
+    <wa-card>
+        <h2>Products</h2>
+        <wa-button
             hx-get="/products"
             hx-target="#productTable"
             hx-swap="innerHTML">
-        <i class="fas fa-sync-alt"></i> Load Products
-    </button>
+            Load Products
+        </wa-button>
 
-    <div id="productTable"></div>
+        <div id="productTable"></div>
+    </wa-card>
+
+    <div th:replace="~{fragments/form :: formFragment}"></div>
 </section>
+<script>
+    // Optional: trigger initial table load
+    htmx.trigger('#loadProductsButton','click');
+</script>
 </html>

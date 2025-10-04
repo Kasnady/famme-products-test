@@ -5,14 +5,20 @@ import com.kasnady.tests.fammeproductstest.products.models.ProductVariant
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.sql.ResultSet
+import java.sql.Timestamp
 
 interface ProductRepository {
     fun getProducts(): List<Product>
 
+    fun saveProduct(product: ProductRequest): Long
+
     fun saveProducts(products: List<Product>)
+
+    fun saveVariants(productId: Long, variants: List<ProductVariantRequest>)
 
     fun saveVariants(variants: List<ProductVariant>)
 }
@@ -26,8 +32,8 @@ class ProductRepositoryImpl(
     override fun getProducts(): List<Product> {
         val contentQuery = """
             WITH limited_products AS (
-            SELECT * FROM product
-            LIMIT 100
+                SELECT * FROM product
+                LIMIT 100
             )
             
             SELECT
@@ -72,6 +78,33 @@ class ProductRepositoryImpl(
                 )
             }
     }
+
+    override fun saveProduct(product: ProductRequest): Long {
+        val keyHolder = GeneratedKeyHolder()
+
+        val sql = """
+            INSERT INTO product (
+                title, handle, product_type,
+                creation_timestamp, last_update_timestamp
+            ) VALUES (
+                :title, :handle, :productType,
+                NOW(), NOW()
+            )
+        """.trimIndent()
+
+        val params = MapSqlParameterSource()
+            .addValue("title", product.title)
+            .addValue("handle", product.handle)
+            .addValue("productType", product.productType)
+
+        namedJdbcTemplate.update(
+            sql,
+            params,
+            keyHolder,
+            arrayOf("id"),
+        )
+
+        return keyHolder.key as Long
     }
 
     override fun saveProducts(products: List<Product>) {
@@ -95,6 +128,30 @@ class ProductRepositoryImpl(
                 .addValue("productType", it.productType)
                 .addValue("creationTimestamp", it.creationTimestamp)
                 .addValue("lastUpdateTimestamp", it.lastUpdateTimestamp)
+        }.toTypedArray()
+
+        namedJdbcTemplate.batchUpdate(sql, params)
+    }
+
+    override fun saveVariants(productId: Long, variants: List<ProductVariantRequest>) {
+        if (variants.isEmpty()) return
+
+        val sql = """
+            INSERT INTO product_variant (
+                product_id, title, sku, price,
+                creation_timestamp, last_update_timestamp
+            ) VALUES (
+                :productId, :title, :sku, :price,
+                NOW(), NOW()
+            )
+        """.trimIndent()
+
+        val params = variants.map {
+            MapSqlParameterSource()
+                .addValue("productId", productId)
+                .addValue("title", it.title)
+                .addValue("sku", it.sku)
+                .addValue("price", it.price)
         }.toTypedArray()
 
         namedJdbcTemplate.batchUpdate(sql, params)
@@ -136,12 +193,12 @@ class ProductRawRowMapper : RowMapper<ProductRaw> {
         productId = rs.getLong("product_id"),
         productTitle = rs.getString("product_title"),
         productHandle = rs.getString("product_handle"),
-            productType = rs.getString("product_type"),
-            creationTimestamp = rs.getTimestamp("creation_timestamp"),
-            lastUpdateTimestamp = rs.getTimestamp("last_update_timestamp"),
+        productType = rs.getString("product_type"),
+        creationTimestamp = rs.getTimestamp("creation_timestamp"),
+        lastUpdateTimestamp = rs.getTimestamp("last_update_timestamp"),
         variantId = rs.getLong("variant_id"),
         variantTitle = rs.getString("variant_title"),
         sku = rs.getString("sku"),
         price = rs.getString("price"),
-        )
+    )
 }

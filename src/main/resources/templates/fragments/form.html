@@ -1,0 +1,66 @@
+<wa-card id="formContainer" th:fragment="formFragment">
+
+  <h3 class="mt-4">Add Product</h3>
+
+  <wa-callout th:if="${errors?.isEmpty() && showSuccess}">
+    <span>Product added successfully!</span>
+  </wa-callout>
+
+  <wa-callout th:if="${errors != null and errors['api'] != null}">
+    <span th:text="${errors['api']}"></span>
+  </wa-callout>
+
+  <form
+    class="wa-stack"
+    hx-post="/products"
+    hx-target="#formContainer"
+    hx-swap="outerHTML"
+  >
+    <!-- Product Fields -->
+    <wa-input label="Title" placeholder="Title" required name="title"></wa-input>
+    <wa-input label="Handle" placeholder="Handle" required name="handle"></wa-input>
+    <wa-input label="Product Type" placeholder="Product Type" required name="productType"></wa-input>
+
+    <!-- Variants Section -->
+    <h3>Variants</h3>
+    <div id="variantsContainer">
+      <!-- First variant row -->
+      <div class="wa-stack variant-row">
+        <wa-input label="Variant Title" placeholder="Variant Title" required name="variants[0].title"></wa-input>
+        <wa-input label="SKU" placeholder="SKU" required name="variants[0].sku"></wa-input>
+        <wa-input label="Price" placeholder="price" required name="variants[0].price"></wa-input>
+      </div>
+
+      <!-- Template for new variant -->
+      <template id="variant-template">
+        <div class="wa-stack variant-row">
+          <wa-input label="Variant Title" placeholder="Variant Title" name="variants[__index__].title"></wa-input>
+          <wa-input label="SKU" placeholder="SKU" name="variants[__index__].sku"></wa-input>
+          <wa-input label="Price" placeholder="price" name="variants[__index__].price"></wa-input>
+
+          <wa-button variant="danger" onclick="this.closest('.variant-row').remove()">
+            X
+          </wa-button>
+        </div>
+      </template>
+    </div>
+
+    <div class="wa-stack">
+      <wa-button variant="success" type="button" class="btn btn-outline-primary" onclick="addVariant()">
+        Add Variant
+      </wa-button>
+
+      <button type="submit" class="wa-button wa-button--success">Save Product</button>
+    </div>
+  </form>
+
+  <script>
+    // Auto-refresh table after successful form submission
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+      const trigger = evt.detail.xhr.getResponseHeader('HX-Trigger');
+      if (trigger === 'tableRefresh') {
+        htmx.ajax('GET', '/products', '#productTable', { swap: 'innerHTML' });
+      }
+    });
+  </script>
+</wa-card>
