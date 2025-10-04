@@ -25,7 +25,7 @@ class ProductServiceImpl(
         logger.info("Start fetching and store products to DB if necessary")
 
         val existingProducts = productRepository.getProducts()
-        if (existingProducts.isNotEmpty() && existingProducts.size >= 30) {
+        if (existingProducts.isNotEmpty() && existingProducts.size >= 1) {
             logger.info(
                 "Abort fetching products data due to existing products size already at 30 or more. Current size: ${existingProducts.size}"
             )
