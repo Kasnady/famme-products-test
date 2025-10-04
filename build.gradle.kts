@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("io.github.wimdeblauwe:htmx-spring-boot-thymeleaf:4.0.1")
     implementation("org.flywaydb:flyway-core")
