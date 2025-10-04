@@ -18,6 +18,8 @@ class ProductController(
         model.addAttribute("errors", emptyMap<String, String>())
         model.addAttribute("showSuccess", false)
 
+        this.isShowProducts(model)
+
         return "products"
     }
 
@@ -49,10 +51,23 @@ class ProductController(
 
             // ✅ Trigger table refresh only on success
             response.setHeader("HX-Trigger", "tableRefresh")
+
+            this.isShowProducts(model)
         }
 
         model.addAttribute("errors", errors)
         model.addAttribute("showSuccess", errors.isEmpty())
         return "fragments/form :: formFragment"
+    }
+
+    // TODO: This should stay at another class
+    private fun isShowProducts(model: Model) {
+        val products = productService.getProducts()
+
+        if (products.isNotEmpty() && products.size >= 50) {
+            model.addAttribute("showForm", false)
+        } else {
+            model.addAttribute("showForm", true)
+        }
     }
 }
