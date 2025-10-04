@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(~{::section})}">
+<section class="wa-stack">
+    <wa-card>
+        <h2>Search Products</h2>
+        
+        <div class="wa-gap-lg">
+            <div class="wa-stack wa-gap-md">
+                <label for="searchInput" class="wa-label">Search by product title:</label>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="wa-input" 
+                    placeholder="Type to search products..."
+                    hx-get="/search/products"
+                    hx-target="#searchResults"
+                    hx-trigger="keyup changed delay:300ms"
+                    hx-include="[name='q']"
+                    name="q"
+                />
+            </div>
+            
+            <div id="searchResults">
+                <div th:replace="~{fragments/productTable :: table}"></div>
+            </div>
+        </div>
+    </wa-card>
+</section>
+
+<script>
+    // Add debounced search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                // HTMX will handle the request automatically due to hx-trigger
+            }, 300);
+        });
+    });
+</script>
+</html>

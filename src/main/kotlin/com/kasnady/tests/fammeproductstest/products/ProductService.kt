@@ -12,6 +12,8 @@ interface ProductService {
 
     fun getProducts(): List<Product>
 
+    fun searchProductsByTitle(searchTerm: String): List<Product>
+
     fun saveProductAndVariants(product: ProductRequest): Long
 }
 
@@ -54,6 +56,10 @@ class ProductServiceImpl(
 
     override fun getProducts(): List<Product> {
         return productRepository.getProducts()
+    }
+
+    override fun searchProductsByTitle(searchTerm: String): List<Product> {
+        return productRepository.searchProductsByTitle(searchTerm)
     }
 
     override fun saveProductAndVariants(product: ProductRequest): Long {

@@ -1,5 +1,6 @@
 package com.kasnady.tests.fammeproductstest.products
 
+import com.kasnady.tests.fammeproductstest.products.models.Product
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -7,6 +8,7 @@ import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class ProductController(
@@ -26,6 +28,27 @@ class ProductController(
     @GetMapping("/products")
     fun productsTable(model: Model): String {
         val products = productService.getProducts()
+
+        model.addAttribute("products", products)
+        return "fragments/productTable :: table" // returns only the table fragment
+    }
+
+    @GetMapping("/search")
+    fun searchPage(model: Model): String {
+        model.addAttribute("products", emptyList<Product>())
+        return "search"
+    }
+
+    @GetMapping("/search/products")
+    fun searchProducts(
+        @RequestParam("q") searchTerm: String,
+        model: Model
+    ): String {
+        val products = if (searchTerm.isBlank()) {
+            productService.getProducts()
+        } else {
+            productService.searchProductsByTitle(searchTerm)
+        }
 
         model.addAttribute("products", products)
         return "fragments/productTable :: table" // returns only the table fragment

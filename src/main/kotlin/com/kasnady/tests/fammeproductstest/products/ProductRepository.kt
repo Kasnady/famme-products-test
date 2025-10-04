@@ -14,6 +14,8 @@ import java.sql.Timestamp
 interface ProductRepository {
     fun getProducts(): List<Product>
 
+    fun searchProductsByTitle(searchTerm: String): List<Product>
+
     fun saveProduct(product: ProductRequest): Long
 
     fun saveProducts(products: List<Product>)
@@ -52,6 +54,60 @@ class ProductRepositoryImpl(
         """.trimIndent()
 
         val productRaws = namedJdbcTemplate.query(contentQuery, ProductRawRowMapper())
+
+        return productRaws
+            .groupBy { it.productId }
+            .map { (_, raws) ->
+                val first = raws.first()
+                Product(
+                    id = first.productId,
+                    title = first.productTitle,
+                    handle = first.productHandle,
+                    productType = first.productType,
+                    creationTimestamp = first.creationTimestamp,
+                    lastUpdateTimestamp = first.lastUpdateTimestamp,
+                    variants = raws.map {
+                        ProductVariant(
+                            id = it.variantId,
+                            productId = it.productId,
+                            title = it.variantTitle,
+                            sku = it.sku,
+                            price = it.price,
+                            creationTimestamp = first.creationTimestamp,
+                            lastUpdateTimestamp = first.lastUpdateTimestamp,
+                        )
+                    }
+                )
+            }
+    }
+
+    override fun searchProductsByTitle(searchTerm: String): List<Product> {
+        val contentQuery = """
+            WITH limited_products AS (
+                SELECT * FROM product
+                WHERE LOWER(title) LIKE LOWER(:searchTerm)
+                LIMIT 10
+            )
+            
+            SELECT
+                pv.product_id,
+                lp.title as product_title,
+                lp.handle as product_handle,
+                lp.product_type,
+                lp.creation_timestamp,
+                lp.last_update_timestamp,
+                pv.id as variant_id,
+                pv.title as variant_title,
+                pv.sku,
+                pv.price
+            FROM limited_products lp
+            LEFT JOIN product_variant pv ON pv.product_id = lp.id
+        """.trimIndent()
+
+        val params = MapSqlParameterSource()
+            .addValue("searchTerm", "%$searchTerm%")
+
+        val productRaws = namedJdbcTemplate.query(contentQuery, params, ProductRawRowMapper())
 
         return productRaws
             .groupBy { it.productId }
