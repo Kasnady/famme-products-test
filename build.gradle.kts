@@ -22,6 +22,9 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-starter-web") // MVC server
+    implementation("org.springframework.boot:spring-boot-starter-webflux") // only for WebClient
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.0")
     implementation("io.github.wimdeblauwe:htmx-spring-boot-thymeleaf:4.0.1")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
